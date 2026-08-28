@@ -9,7 +9,7 @@
   <body>
     <header class="topbar">
       <div class="brand"><span class="brand-mark">?</span><span>Помощь с техникой</span></div>
-      <nav class="topbar-note"><a href="#ticket-form">Сообщить о проблеме</a><a href="#my-requests">Мои заявки</a><a href="#equipment">Техника</a><button class="account-button hidden" id="open-profile"><span class="avatar avatar-small" id="header-avatar">К</span><span id="header-name">Профиль</span></button><button class="login-link" id="open-login">Войти</button></nav>
+      <nav class="topbar-note"><a href="#ticket-form">Сообщить о проблеме</a><a href="#my-requests">Мои заявки</a><a href="#equipment">Техника</a><button class="account-button hidden" id="open-profile"><span class="avatar avatar-small" id="header-avatar">К</span><span id="header-name">Профиль</span></button><button class="login-link" id="open-login">Войти</button><button class="login-link" id="open-admin-login">Вход администратора</button></nav>
     </header>
     <div class="app-notice hidden" id="app-notice" role="status" aria-live="polite"></div>
 
@@ -36,7 +36,7 @@
             <label>Что не работает?<input name="title" minlength="5" maxlength="160" placeholder="Например: не печатает принтер" required></label>
             <label>Что произошло?<textarea name="description" minlength="10" placeholder="Укажите, что не работает, где находится техника и что вы уже пробовали." required></textarea></label>
             <div class="two-columns">
-              <label>Ваш рабочий email<input name="requester_email" type="email" placeholder="name@company.kz" required></label>
+              <label>Ваш аккаунт<input id="ticket-requester-email" type="email" placeholder="Войдите в аккаунт" readonly></label>
               <label>Срочность<select name="priority"><option value="low">Низкая</option><option value="normal" selected>Обычная</option><option value="high">Высокая</option><option value="critical">Критическая</option></select></label>
             </div>
             <button class="primary-button" type="submit">Позвать специалиста</button>

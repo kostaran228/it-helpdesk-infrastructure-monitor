@@ -8,12 +8,12 @@ from .models import AssetAvailability, AssetStatus, AssetType, TicketPriority, T
 class TicketCreate(BaseModel):
     title: str = Field(min_length=5, max_length=160, examples=["Не печатает принтер на 3 этаже"])
     description: str = Field(min_length=10, examples=["Принтер показывает статус offline после перезагрузки ПК."])
-    requester_email: EmailStr
     priority: TicketPriority = TicketPriority.normal
 
 
 class TicketRead(TicketCreate):
     id: int
+    requester_email: EmailStr
     status: TicketStatus
     created_at: datetime
 

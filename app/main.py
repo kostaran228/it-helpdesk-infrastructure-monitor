@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from .auth import authenticate_user, create_access_token, get_current_it_operator, get_current_specialist, get_current_system_admin, get_current_user, initialize_system_admin, register_employee
+from .auth import authenticate_user, create_access_token, get_current_it_operator, get_current_system_admin, get_current_user, initialize_system_admin, register_employee
 from .database import Base, engine, get_db
 from .models import Asset, AssetAvailability, Ticket, TicketStatus, User, UserRole
 from .schemas import AssetCreate, AssetRead, LoginRequest, LoginResponse, ProfileRead, ProfileUpdate, RegisterRequest, TicketCreate, TicketRead, TicketStatusUpdate, UserRead, UserRoleUpdate
@@ -144,8 +144,8 @@ def update_user_role(user_id: int, payload: UserRoleUpdate, _: User = Depends(ge
 
 
 @app.post("/tickets", response_model=TicketRead, status_code=status.HTTP_201_CREATED)
-def create_ticket(payload: TicketCreate, db: Session = Depends(get_db)):
-    ticket = Ticket(**payload.model_dump())
+def create_ticket(payload: TicketCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    ticket = Ticket(**payload.model_dump(), requester_email=user.email)
     db.add(ticket)
     db.commit()
     db.refresh(ticket)
@@ -153,12 +153,15 @@ def create_ticket(payload: TicketCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/tickets", response_model=list[TicketRead])
-def list_tickets(db: Session = Depends(get_db)):
-    return db.scalars(select(Ticket).order_by(Ticket.created_at.desc())).all()
+def list_tickets(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    query = select(Ticket).order_by(Ticket.created_at.desc())
+    if user.role not in {UserRole.specialist, UserRole.system_admin}:
+        query = query.where(Ticket.requester_email == user.email)
+    return db.scalars(query).all()
 
 
 @app.patch("/tickets/{ticket_id}/status", response_model=TicketRead)
-def update_ticket_status(ticket_id: int, payload: TicketStatusUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_specialist)):
+def update_ticket_status(ticket_id: int, payload: TicketStatusUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_it_operator)):
     ticket = db.get(Ticket, ticket_id)
     if ticket is None:
         raise HTTPException(status_code=404, detail="Заявка не найдена")
