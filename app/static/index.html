@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Помощь с техникой</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">?</span><span>Помощь с техникой</span></div>
+      <nav class="topbar-note"><a href="#ticket-form">Сообщить о проблеме</a><a href="#my-requests">Мои заявки</a><a href="#equipment">Техника</a><button class="account-button hidden" id="open-profile"><span class="avatar avatar-small" id="header-avatar">К</span><span id="header-name">Профиль</span></button><button class="login-link" id="open-login">Войти</button></nav>
+    </header>
+    <div class="app-notice hidden" id="app-notice" role="status" aria-live="polite"></div>
+
+    <main class="layout">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">ПОМОЩЬ С РАБОЧЕЙ ТЕХНИКОЙ</p>
+          <h1>Что у вас<br>не работает?</h1>
+          <p class="lead">Опишите проблему простыми словами. Специалист увидит заявку и поможет.</p>
+        </div>
+        <button class="primary-button" data-scroll="ticket-form">Сообщить о проблеме</button>
+      </section>
+
+      <section class="stats" aria-label="Сводка">
+        <article class="stat-card"><span class="stat-icon blue">▣</span><div><span class="stat-label">Все обращения</span><strong id="tickets-total">0</strong></div></article>
+        <article class="stat-card"><span class="stat-icon amber">◔</span><div><span class="stat-label">В работе</span><strong id="tickets-progress">0</strong></div></article>
+        <article class="stat-card"><span class="stat-icon green">●</span><div><span class="stat-label">Оборудование</span><strong id="assets-total">0</strong></div></article>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel" id="ticket-form">
+          <div class="panel-header"><div><p class="eyebrow">НОВОЕ ОБРАЩЕНИЕ</p><h2>Расскажите, что случилось</h2></div><span class="step">1</span></div>
+          <form id="new-ticket-form">
+            <label>Что не работает?<input name="title" minlength="5" maxlength="160" placeholder="Например: не печатает принтер" required></label>
+            <label>Что произошло?<textarea name="description" minlength="10" placeholder="Укажите, что не работает, где находится техника и что вы уже пробовали." required></textarea></label>
+            <div class="two-columns">
+              <label>Ваш рабочий email<input name="requester_email" type="email" placeholder="name@company.kz" required></label>
+              <label>Срочность<select name="priority"><option value="low">Низкая</option><option value="normal" selected>Обычная</option><option value="high">Высокая</option><option value="critical">Критическая</option></select></label>
+            </div>
+            <button class="primary-button" type="submit">Позвать специалиста</button>
+            <p class="form-message" id="ticket-message" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div class="panel quick-guide">
+          <p class="eyebrow">ВСЁ ПРОСТО</p><h2>Что произойдёт дальше</h2>
+          <ol>
+            <li><span>1</span><div><strong>Вы описываете проблему</strong><p>Например, «не работает интернет».</p></div></li>
+            <li><span>2</span><div><strong>Специалист начинает работу</strong><p>В списке появится статус «В работе».</p></div></li>
+            <li><span>3</span><div><strong>Проблему решают</strong><p>Статус изменится на «Решена».</p></div></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="panel list-panel" id="my-requests">
+        <div class="panel-header"><div><p class="eyebrow">МОИ ОБРАЩЕНИЯ</p><h2>Статус ваших проблем</h2></div><button class="ghost-button" id="refresh-tickets">Обновить список</button></div>
+        <div class="table-wrap"><table><thead><tr><th>№</th><th>Проблема</th><th>Срочность</th><th>Статус</th><th>Создана</th></tr></thead><tbody id="tickets-list"></tbody></table></div>
+      </section>
+
+      <section class="content-grid assets-section" id="equipment">
+        <div class="panel">
+          <div class="panel-header"><div><p class="eyebrow">ТЕХНИКА</p><h2>Добавить устройство</h2></div><span class="step">2</span></div>
+          <form id="new-asset-form">
+            <div class="two-columns"><label>Название устройства<input name="name" placeholder="Например: ALM-PRN-03" required></label><label>Тип<select name="asset_type"><option value="desktop">Компьютер</option><option value="laptop">Ноутбук</option><option value="printer">Принтер / МФУ</option><option value="network_device">Сетевое устройство</option></select></label></div>
+            <div class="two-columns"><label>IP-адрес <span class="optional">необязательно</span><input name="ip_address" placeholder="192.168.10.33"></label><label>Расположение <span class="optional">необязательно</span><input name="location" placeholder="3 этаж, бухгалтерия"></label></div>
+            <label>Ответственный email <span class="optional">необязательно</span><input name="owner_email" type="email" placeholder="employee@company.kz"></label>
+            <button class="secondary-button" type="submit">Добавить устройство</button><p class="form-message" id="asset-message" aria-live="polite"></p>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div><p class="eyebrow">ТЕХНИКА</p><h2>Что уже добавлено</h2></div><button class="ghost-button" id="refresh-assets">Обновить список</button></div>
+          <div class="asset-list" id="assets-list"></div>
+        </div>
+      </section>
+
+      <section class="panel specialist-panel hidden" id="specialist-panel">
+        <div class="panel-header"><div><p class="eyebrow">РАБОЧЕЕ МЕСТО СПЕЦИАЛИСТА</p><h2>Очередь обращений</h2><p class="specialist-welcome" id="specialist-welcome"></p></div><button class="ghost-button" id="logout">Выйти</button></div>
+        <p class="specialist-intro">Здесь специалист может менять статус заявок и проверять доступность техники.</p>
+        <div class="specialist-list" id="specialist-tickets"></div>
+      </section>
+      <section class="panel system-panel hidden" id="system-panel">
+        <div class="panel-header"><div><p class="eyebrow">СИСТЕМНЫЙ ВЛАДЕЛЕЦ</p><h2>Права пользователей</h2><p class="specialist-intro">Только вы можете выдавать или отзывать статус разработчика.</p></div></div>
+        <div class="specialist-list" id="users-list"></div>
+      </section>
+    </main>
+    <div class="modal hidden" id="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <div class="modal-card"><button class="modal-close" id="close-login" aria-label="Закрыть">×</button><p class="eyebrow" id="auth-eyebrow">ВХОД В АККАУНТ</p><h2 id="login-title">Добро пожаловать</h2><p class="modal-description" id="auth-description">Войдите, чтобы увидеть свои обращения.</p>
+        <form id="login-form" novalidate><label class="hidden" id="register-name-field">Ваше имя<input name="full_name" minlength="2" maxlength="120" placeholder="Например: Константин Гилев"></label><label>Email<input name="email" type="email" placeholder="name@company.kz" required></label><label>Пароль<input name="password" type="password" placeholder="Не меньше 8 символов" required></label><button class="primary-button" type="submit" id="auth-submit">Войти</button><p class="form-message" id="login-message" aria-live="polite"></p></form><button class="auth-switch" id="auth-switch">Нет аккаунта? Зарегистрироваться</button>
+      </div>
+    </div>
+    <div class="modal setup-modal hidden" id="setup-modal" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+      <div class="modal-card setup-card"><div class="setup-icon">!</div><p class="eyebrow">ВАЖНЫЙ ШАГ ПРИ ПЕРВОМ ЗАПУСКЕ</p><h2 id="setup-title">Настройте системный аккаунт</h2><p class="modal-description">Этот аккаунт является владельцем приложения. Привяжите вашу почту и задайте надёжный пароль: только системный владелец сможет выдавать статус разработчика.</p>
+        <form id="setup-form"><label>Ваше имя<input name="full_name" minlength="2" maxlength="120" placeholder="Например: Константин Гилев" required></label><label>Ваша почта<input name="email" type="email" placeholder="you@example.com" required></label><label>Придумайте пароль<input name="password" type="password" minlength="8" placeholder="Не меньше 8 символов" required></label><label>Повторите пароль<input name="password_confirm" type="password" minlength="8" placeholder="Повторите пароль" required></label><button class="primary-button" type="submit">Создать системный аккаунт</button><p class="form-message" id="setup-message" aria-live="polite"></p></form>
+      </div>
+    </div>
+    <div class="modal hidden" id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+      <div class="modal-card"><button class="modal-close" id="close-profile" aria-label="Закрыть">×</button><p class="eyebrow">ВАШ АККАУНТ</p><h2 id="profile-title">Профиль</h2><p class="modal-description" id="profile-email"></p><div class="profile-avatar-wrap"><span class="avatar avatar-large" id="profile-avatar">К</span><label class="upload-label" for="avatar-file">Изменить фото</label><input class="hidden" id="avatar-file" type="file" accept="image/jpeg,image/png,image/webp"></div><form id="profile-form"><label>Ваше имя<input id="profile-name-input" name="full_name" minlength="2" maxlength="120" required></label><button class="primary-button" type="submit">Сохранить изменения</button><p class="form-message" id="profile-message" aria-live="polite"></p></form><button class="logout-button" id="logout">Выйти из аккаунта</button></div>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
