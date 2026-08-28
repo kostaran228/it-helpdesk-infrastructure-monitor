@@ -40,6 +40,7 @@ class LoginResponse(BaseModel):
     user_role: UserRole
     full_name: str
     avatar_path: str | None = None
+    requires_activation: bool = False
 
 
 class ProfileRead(BaseModel):
@@ -47,11 +48,18 @@ class ProfileRead(BaseModel):
     role: UserRole
     full_name: str
     avatar_path: str | None = None
+    requires_activation: bool = False
 
     model_config = {"from_attributes": True}
 
 
 class ProfileUpdate(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+
+
+class SystemAdminActivation(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
     full_name: str = Field(min_length=2, max_length=120)
 
 

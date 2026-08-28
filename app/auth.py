@@ -15,6 +15,8 @@ password_hash = PasswordHash.recommended()
 bearer_scheme = HTTPBearer()
 AUTH_SECRET = os.environ["AUTH_SECRET"]
 ALGORITHM = "HS256"
+BOOTSTRAP_ADMIN_EMAIL = os.getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@helpdesk-demo.com").lower()
+BOOTSTRAP_ADMIN_PASSWORD = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "ChangeMe123!")
 
 
 def ensure_default_specialist(db: Session) -> None:
@@ -46,6 +48,42 @@ def initialize_system_admin(db: Session, email: str, password: str, full_name: s
         return None
     user = User(email=email.lower(), password_hash=password_hash.hash(password), role=UserRole.system_admin, full_name=full_name.strip())
     db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def ensure_bootstrap_system_admin(db: Session) -> User | None:
+    """Create the one-time local administrator only on a completely new installation."""
+    existing = db.scalar(select(User).where(User.role == UserRole.system_admin))
+    if existing is not None:
+        return None
+    user = User(
+        email=BOOTSTRAP_ADMIN_EMAIL,
+        password_hash=password_hash.hash(BOOTSTRAP_ADMIN_PASSWORD),
+        role=UserRole.system_admin,
+        full_name="",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def is_bootstrap_system_admin(user: User) -> bool:
+    return user.role == UserRole.system_admin and user.email == BOOTSTRAP_ADMIN_EMAIL
+
+
+def activate_system_admin(db: Session, user: User, email: str, password: str, full_name: str) -> User:
+    if not is_bootstrap_system_admin(user):
+        raise ValueError("Системный администратор уже активирован")
+    normalized_email = email.lower()
+    duplicate = db.scalar(select(User).where(User.email == normalized_email, User.id != user.id))
+    if duplicate is not None:
+        raise ValueError("Аккаунт с такой почтой уже существует")
+    user.email = normalized_email
+    user.password_hash = password_hash.hash(password)
+    user.full_name = full_name.strip()
     db.commit()
     db.refresh(user)
     return user

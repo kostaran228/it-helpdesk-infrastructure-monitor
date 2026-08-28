@@ -11,12 +11,14 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from .auth import authenticate_user, create_access_token, get_current_it_operator, get_current_system_admin, get_current_user, initialize_system_admin, register_employee
-from .database import Base, engine, get_db
+from .auth import activate_system_admin, authenticate_user, create_access_token, ensure_bootstrap_system_admin, get_current_it_operator, get_current_system_admin, get_current_user, initialize_system_admin, is_bootstrap_system_admin, register_employee
+from .database import Base, SessionLocal, engine, get_db
 from .models import Asset, AssetAvailability, Ticket, TicketStatus, User, UserRole
-from .schemas import AssetCreate, AssetRead, LoginRequest, LoginResponse, ProfileRead, ProfileUpdate, RegisterRequest, TicketCreate, TicketRead, TicketStatusUpdate, UserRead, UserRoleUpdate
+from .schemas import AssetCreate, AssetRead, LoginRequest, LoginResponse, ProfileRead, ProfileUpdate, RegisterRequest, SystemAdminActivation, TicketCreate, TicketRead, TicketStatusUpdate, UserRead, UserRoleUpdate
 
 Base.metadata.create_all(bind=engine)
+with SessionLocal() as bootstrap_db:
+    ensure_bootstrap_system_admin(bootstrap_db)
 
 app = FastAPI(
     title="IT HelpDesk & Infrastructure Monitor",
@@ -38,6 +40,7 @@ def login_response(user: User) -> LoginResponse:
         user_role=user.role,
         full_name=user.full_name or user.email.split("@", 1)[0],
         avatar_path=user.avatar_path,
+        requires_activation=is_bootstrap_system_admin(user),
     )
 
 
@@ -72,7 +75,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 
 @app.get("/setup/status")
 def setup_status(db: Session = Depends(get_db)):
-    return {"needs_setup": db.scalar(select(User).where(User.role == UserRole.system_admin)) is None}
+    return {"needs_setup": False}
 
 
 @app.post("/setup/initialize", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
@@ -93,7 +96,24 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 @app.get("/auth/me", response_model=ProfileRead)
 def current_profile(user: User = Depends(get_current_user)):
-    return user
+    return ProfileRead(
+        email=user.email,
+        role=user.role,
+        full_name=user.full_name,
+        avatar_path=user.avatar_path,
+        requires_activation=is_bootstrap_system_admin(user),
+    )
+
+
+@app.post("/setup/activate-system-admin", response_model=LoginResponse)
+def activate_owner(payload: SystemAdminActivation, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.role != UserRole.system_admin:
+        raise HTTPException(status_code=403, detail="Активировать системного администратора может только этот аккаунт")
+    try:
+        user = activate_system_admin(db, user, payload.email, payload.password, payload.full_name)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    return login_response(user)
 
 
 @app.patch("/auth/profile", response_model=ProfileRead)
